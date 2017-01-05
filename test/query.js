@@ -474,4 +474,24 @@ describe('jsonquery tests', function () {
     stream.write({ foo: ['bar'] })
     stream.end()
   });
+
+  it('should match a document using a function', function (done) {
+    var count = 0;
+    stream = jsonquery({ foo: { $near: ['bar'] } })
+    jsonquery.addExtension({ $near : function (val, args) { return val; }});
+
+    stream
+      .on('data', function (doc) {
+        expect(doc.foo).to.deep.equal(['bar']);
+        count++;
+      })
+      .on('end', function () {
+        expect(count).to.equal(1);
+        done();
+      });
+
+    stream.write({ bar: ['baz'] })
+    stream.write({ foo: ['bar'] })
+    stream.end()
+  });
 });

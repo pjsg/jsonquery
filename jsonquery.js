@@ -84,6 +84,8 @@
     return matches === matchCount;
   };
 
+  extension = {},
+
   valOp = function(op, val, args, haystack) {
     var matchCount, matches, part, v, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _m;
     switch (op) {
@@ -162,6 +164,10 @@
       case '$type':
         return checkType(val, args);
       default:
+        var fn = extension[op];
+        if (fn) {
+          return fn(val, args);
+        }
         return false;
     }
   };
@@ -195,11 +201,12 @@
     }
   };
 
-  queryStream = function(query) {
+  queryStream = function(query, extension) {
     var s;
     s = new Stream;
     s.writable = true;
     s.readable = true;
+    s._extension = extension;
     s.write = function(buf) {
       if (match(query, buf)) {
         return s.emit('data', buf);
@@ -223,5 +230,11 @@
   module.exports.match = function(haystack, predicate) {
     return match(predicate, haystack);
   };
+
+  module.exports.addExtension = function (ext) {
+    for (var n in ext) {
+      extension[n] = ext[n];
+    }
+  }
 
 }).call(this);
